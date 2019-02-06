@@ -1,5 +1,5 @@
 ﻿using System;
-namespace GroceryStoreDataGenerator
+namespace GroceryStoreDataGenerator.Models
 {
     public class ScannerData
     {
@@ -14,10 +14,6 @@ namespace GroceryStoreDataGenerator
             DatePurchased = datePurchased;
             SalePrice = Math.Round(salePrice, 2);
             CustomerNumber = customerNumber;
-        }
-
-        public ScannerData()
-        {
         }
     }
 }

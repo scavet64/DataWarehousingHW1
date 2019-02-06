@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GroceryStoreDataGenerator
+namespace GroceryStoreDataGenerator.Models
 {
     public class Product
     {
@@ -23,8 +23,6 @@ namespace GroceryStoreDataGenerator
 
         [DataName("BasePrice")]
         public Double BasePrice { get; set; }
-
-        public IPurchaseBehavior purchaseBehavior { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Product"/> class.

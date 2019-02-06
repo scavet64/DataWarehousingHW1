@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using CsvHelper;
+using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator
 {
