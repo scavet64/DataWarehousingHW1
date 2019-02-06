@@ -3,58 +3,38 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator
 {
-    //TODO: Maybe make a mapping of the category to a list of indexes. Then create a method could use this map and get direct access to the main inventory list.
     public class Inventory
     {
-        private const string filename = "Products1.txt";
-        private readonly List<Product> InventoryList;
-        private readonly Dictionary<string, List<int>> ItemTypeToIndexList;
+        private readonly Dictionary<string, List<Product>> _itemTypeToProductList;
 
-        private static Inventory instance;
-        public static Inventory Instance => instance ?? (instance = new Inventory());
-
-        private Inventory()
+        public Inventory(string filename)
         {
-            InventoryList = new List<Product>();
-            ItemTypeToIndexList = new Dictionary<string, List<int>>();
-            ReadFile();
+            _itemTypeToProductList = new Dictionary<string, List<Product>>();
+            ReadFile(filename);
         }
 
-        private void ReadFile()
+        private void ReadFile(string filename)
         {
             using (var reader = new StreamReader(filename))
             {
                 // Get the header file information
-                string header = reader.ReadLine();
-                string[] headers = header.Split('|');
-                int indexCounter = 0;
+                string[] headers = reader.ReadLine().Split('|');
 
                 while (!reader.EndOfStream)
                 {
-                    string line = reader.ReadLine();
-                    string[] values = line.Split('|');
-                    Product prod = new Product();
+                    string[] values = reader.ReadLine().Split('|');
+                    Product product = new Product();
 
-                    //Trying to do this even better with custom attributes
-                    //var temp = prod.GetType().GetProperties();
-                    //foreach (PropertyInfo propinfo in temp)
-                    //{
-                    //    string dataName = propinfo.CustomAttributes.First().ConstructorArguments.First().Value.ToString();
-                    //    propinfo.SetValue(values);
-                    //}
-
-                    //Lazy way
                     for (int i = 0; i < headers.Length; i++)
                     {
                         object value;
-                        PropertyInfo propInfo = prod.GetType().GetProperty(headers[i]);
-                        if (propInfo.PropertyType == typeof(Double))
+                        PropertyInfo propertyInfo = product.GetType().GetProperty(headers[i]);
+                        if (propertyInfo.PropertyType == typeof(double))
                         {
                             //Parse the double (this is for the price)
                             value = double.Parse(Regex.Match(values[i], @"(\d+(\.\d+)?)|(\.\d+)").Value);
@@ -63,17 +43,17 @@ namespace GroceryStoreDataGenerator
                         {
                             value = values[i];
                         }
-                        propInfo.SetValue(prod, value);
+
+                        propertyInfo.SetValue(product, value);
                     }
-                    InventoryList.Add(prod);
 
                     //Get Store the product category into the map for quick, direct access to the main inventory list
-                    if (!ItemTypeToIndexList.ContainsKey(prod.ItemType))
+                    if (!_itemTypeToProductList.ContainsKey(product.ItemType))
                     {
                         //First time that we saw this key, Make a new list and add it to the map
-                        ItemTypeToIndexList.Add(prod.ItemType, new List<int>());
+                        _itemTypeToProductList.Add(product.ItemType, new List<Product>());
                     }
-                    ItemTypeToIndexList[prod.ItemType].Add(indexCounter++);
+                    _itemTypeToProductList[product.ItemType].Add(product);
 
                 }
             }
@@ -86,17 +66,12 @@ namespace GroceryStoreDataGenerator
         /// <param name="type">Type.</param>
         public List<Product> GetProductsByType(string type)
         {
-            List<Product> products = new List<Product>();
-            List<int> indexesForType = ItemTypeToIndexList[type];
-            if (indexesForType != null)
+            if (!_itemTypeToProductList.ContainsKey(type))
             {
-                foreach (int index in indexesForType)
-                {
-                    products.Add(InventoryList[index]);
-                }
+                throw new ArgumentException($"Item type {type} does not exist in the inventory.");
             }
 
-            return products;
+            return _itemTypeToProductList[type];
         }
 
         public Product GetRandomProductByType(string type)
@@ -105,30 +80,32 @@ namespace GroceryStoreDataGenerator
             return products[new Random().Next(products.Count)];
         }
 
-        public List<Product> GetRandomProducts(int numberOfProds, params string[] typeToIgnore)
+        public List<Product> GetRandomProducts(int numberOfProducts, params string[] typeToIgnore)
         {
-            Random rng = new Random();
             List<Product> randomProducts = new List<Product>();
-            for(int i = 0; i < numberOfProds; i++)
+
+            List<Product> searchList = new List<Product>();
+            foreach (var key in _itemTypeToProductList.Keys)
             {
-                Product randomProd = InventoryList[rng.Next(InventoryList.Count)];
-                if (!typeToIgnore.Contains(randomProd.ItemType))
+                if (!typeToIgnore.Contains(key))
                 {
-                    randomProducts.Add(randomProd);
-                }
-                else
-                {
-                    //This feels dirty but it makes sure the number of products is correct
-                    i--;
+                    searchList.AddRange(_itemTypeToProductList[key]);
                 }
             }
+
+            Random rng = new Random();
+            for (int i = 0; i < numberOfProducts; i++)
+            {
+                randomProducts.Add(searchList[rng.Next(searchList.Count)]);
+            }
+
             return randomProducts;
         }
 
         //testing
-        public int getCount()
+        public int GetCount()
         {
-            return InventoryList.Count;
+            return _itemTypeToProductList.Values.Count;
         }
     }
 }

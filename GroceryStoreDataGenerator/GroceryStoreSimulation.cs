@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using GroceryStoreDataGenerator.Models;
 using GroceryStoreDataGenerator.ProductStatisticsService;
 
@@ -15,21 +14,26 @@ namespace GroceryStoreDataGenerator
         public const int WeekendCustomerIncrease = 50;
         public const int DaysToRunSimulation = 365;
 
-        private readonly Random rng = new Random();
-        private readonly string[] TypesToIgnore;
-        private readonly List<IProductStatService> statisticsServices;
+        private readonly Inventory _groceryStoreInventory;
+        private readonly Action<int,int> _progressCallback;
+        private readonly Random _rng = new Random();
+        private readonly string[] _typesToIgnore;
+        private readonly List<IProductStatService> _statisticsServices;
 
-        public GroceryStoreSimulation()
+        public GroceryStoreSimulation(Inventory groceryStoreInventory, Action<int,int> progressCallback = null)
         {
-            statisticsServices = new List<IProductStatService>()
+            _groceryStoreInventory = groceryStoreInventory;
+            _progressCallback = progressCallback;
+
+            _statisticsServices = new List<IProductStatService>()
             {
-                new BabyFoodAndDiaperStatService(),
-                new BreadStatService(),
-                new MilkAndCerealStatService(),
-                new PeanutButterAndJellyStatService()
+                new BabyFoodAndDiaperStatService {Inventory = groceryStoreInventory},
+                new BreadStatService {Inventory = groceryStoreInventory},
+                new MilkAndCerealStatService {Inventory = groceryStoreInventory},
+                new PeanutButterAndJellyStatService {Inventory = groceryStoreInventory}
             };
 
-            TypesToIgnore = new string[]{
+            _typesToIgnore = new[]{
                 BabyFoodAndDiaperStatService.babyFoodType,
                 BabyFoodAndDiaperStatService.DiaperType,
                 BreadStatService.BreadType,
@@ -48,9 +52,9 @@ namespace GroceryStoreDataGenerator
             for (int i = 0; i < DaysToRunSimulation; i++)
             {
                 SimulateDay(currentDate, scannerDataList, i);
-                Console.WriteLine($"Finished Day {i}");
+                _progressCallback?.Invoke(i, DaysToRunSimulation);
             }
-            Console.WriteLine(scannerDataList.Count);
+
             return scannerDataList;
         }
 
@@ -71,13 +75,13 @@ namespace GroceryStoreDataGenerator
             List<Product> itemsPurchased = new List<Product>();
 
             // Handle each of the specific stat based products
-            foreach (IProductStatService statService in statisticsServices)
+            foreach (IProductStatService statService in _statisticsServices)
             {
                 itemsPurchased.AddRange(statService.GetProductsBasedOnStats());
             }
 
             //handle everything else
-            itemsPurchased.AddRange(Inventory.Instance.GetRandomProducts(rng.Next(MaxItems - itemsPurchased.Count), TypesToIgnore));
+            itemsPurchased.AddRange(_groceryStoreInventory.GetRandomProducts(_rng.Next(MaxItems - itemsPurchased.Count), _typesToIgnore));
 
 
             foreach (Product product in itemsPurchased)

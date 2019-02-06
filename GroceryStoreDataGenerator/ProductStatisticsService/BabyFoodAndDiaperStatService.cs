@@ -23,11 +23,11 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
             //got milk?
             if (GetPercentage() <= babyfoodPercent)
             {
-                products.Add(Inventory.Instance.GetRandomProductByType(babyFoodType));
+                products.Add(Inventory.GetRandomProductByType(babyFoodType));
                 //got cereal?
                 if (GetPercentage() <= diaperPercent)
                 {
-                    products.Add(Inventory.Instance.GetRandomProductByType(DiaperType));
+                    products.Add(Inventory.GetRandomProductByType(DiaperType));
                 }
             }
             else
@@ -35,7 +35,7 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
                 //cereal without milk
                 if (GetPercentage() <= diapersWithoutBabyFoodPercent)
                 {
-                    products.Add(Inventory.Instance.GetRandomProductByType(DiaperType));
+                    products.Add(Inventory.GetRandomProductByType(DiaperType));
                 }
             }
 

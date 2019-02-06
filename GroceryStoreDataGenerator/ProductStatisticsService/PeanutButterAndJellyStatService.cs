@@ -23,11 +23,11 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
             //got peanut butter?
             if (GetPercentage() <= peanutButterPercent)
             {
-                products.Add(Inventory.Instance.GetRandomProductByType(PeanutButterType));
+                products.Add(Inventory.GetRandomProductByType(PeanutButterType));
                 //got jelly/jam?
                 if (GetPercentage() <= jellyJamPercent)
                 {
-                    products.Add(Inventory.Instance.GetRandomProductByType(JellyJamType));
+                    products.Add(Inventory.GetRandomProductByType(JellyJamType));
                 }
             }
             else
@@ -35,7 +35,7 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
                 //jelly/jam without peanut butter
                 if (GetPercentage() <= jellyJamWithoutPeanutButter)
                 {
-                    products.Add(Inventory.Instance.GetRandomProductByType(JellyJamType));
+                    products.Add(Inventory.GetRandomProductByType(JellyJamType));
                 }
             }
 

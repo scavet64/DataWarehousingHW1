@@ -20,7 +20,7 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
             //got milk?
             if (GetPercentage() <= breadPercent)
             {
-                products.Add(Inventory.Instance.GetRandomProductByType(BreadType));
+                products.Add(Inventory.GetRandomProductByType(BreadType));
             }
 
             return products;

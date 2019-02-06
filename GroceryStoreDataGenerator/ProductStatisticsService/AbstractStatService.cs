@@ -8,6 +8,8 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
     {
         protected readonly Random rng = new Random();
 
+        public Inventory Inventory { protected get; set; }
+
         protected int GetPercentage()
         {
             return rng.Next(100) + 1;
