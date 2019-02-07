@@ -24,7 +24,22 @@ namespace GroceryStoreDataGenerator
 
             List<ScannerData> data = simulation.RunSimulation();
 
-            Console.WriteLine($"\nTotal Scans:\t{data.Count}");
+            GroceryStoreSummary summary = new GroceryStoreSummary(data);
+
+            Console.WriteLine();
+
+            Console.WriteLine($"Number of customers: {summary.NumberOfCustomers}");
+
+            Console.WriteLine($"Total sales: ${Math.Round(summary.TotalSales, 2)}");
+
+            Console.WriteLine($"Total items bought: {summary.TotalItemsBought}");
+
+            Console.WriteLine($"Top 10 selling items with counts: ");
+
+            foreach (var (item, count) in summary.TopTenSellingItemsWithCounts)
+            {
+                Console.WriteLine($"\t{item}\t{count}");
+            }
 
             Console.WriteLine("Writing to data.csv...");
 

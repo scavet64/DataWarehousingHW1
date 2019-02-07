@@ -53,6 +53,7 @@ namespace GroceryStoreDataGenerator
             {
                 SimulateDay(currentDate, scannerDataList, i);
                 _progressCallback?.Invoke(i, DaysToRunSimulation);
+                currentDate = currentDate.AddDays(1);
             }
 
             return scannerDataList;
@@ -66,8 +67,6 @@ namespace GroceryStoreDataGenerator
             {
                 SimulateCustomer(currentDate, scannerDataList, j);
             }
-
-            currentDate.AddDays(1);
         }
 
         private void SimulateCustomer(DateTime currentDate, List<ScannerData> scannerDataList, int customerNumber)
