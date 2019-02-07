@@ -3,55 +3,109 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Text.RegularExpressions;
+using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator
 {
-    //TODO: Maybe make a mapping of the category to a list of indexes. Then create a method could use this map and get direct access to the main inventory list.
     public class Inventory
     {
-        private const string filename = "Products1.txt";
-        public readonly List<Product> InventoryList;
+        private readonly Dictionary<string, List<Product>> _itemTypeToProductList;
 
-        private static Inventory instance;
-        public static Inventory Instance => instance ?? (instance = new Inventory());
-
-        public Inventory()
+        public Inventory(string filename)
         {
-            InventoryList = new List<Product>();
-            ReadFile();
+            _itemTypeToProductList = new Dictionary<string, List<Product>>();
+            ReadFile(filename);
         }
 
-        private void ReadFile()
+        private void ReadFile(string filename)
         {
             using (var reader = new StreamReader(filename))
             {
                 // Get the header file information
-                string header = reader.ReadLine();
-                string[] headers = header.Split('|');
+                string[] headers = reader.ReadLine().Split('|');
 
                 while (!reader.EndOfStream)
                 {
-                    string line = reader.ReadLine();
-                    string[] values = line.Split('|');
-                    Product prod = new Product();
+                    string[] values = reader.ReadLine().Split('|');
+                    Product product = new Product();
 
-                    //Trying to do this even better with custom attributes
-                    //var temp = prod.GetType().GetProperties();
-                    //foreach (PropertyInfo propinfo in temp)
-                    //{
-                    //    string dataName = propinfo.CustomAttributes.First().ConstructorArguments.First().Value.ToString();
-                    //    propinfo.SetValue(values);
-                    //}
-
-                    //Lazy way
                     for (int i = 0; i < headers.Length; i++)
                     {
-                        prod.GetType().GetProperty(headers[i]).SetValue(prod, values[i]);
+                        object value;
+                        PropertyInfo propertyInfo = product.GetType().GetProperty(headers[i]);
+                        if (propertyInfo.PropertyType == typeof(double))
+                        {
+                            //Parse the double (this is for the price)
+                            value = double.Parse(Regex.Match(values[i], @"(\d+(\.\d+)?)|(\.\d+)").Value);
+                        }
+                        else
+                        {
+                            value = values[i];
+                        }
+
+                        propertyInfo.SetValue(product, value);
                     }
-                    InventoryList.Add(prod);
+
+                    //Get Store the product category into the map for quick, direct access to the main inventory list
+                    if (!_itemTypeToProductList.ContainsKey(product.ItemType))
+                    {
+                        //First time that we saw this key, Make a new list and add it to the map
+                        _itemTypeToProductList.Add(product.ItemType, new List<Product>());
+                    }
+                    _itemTypeToProductList[product.ItemType].Add(product);
+
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets a list of products that have the passed in type.
+        /// </summary>
+        /// <returns>The type to get products of.</returns>
+        /// <param name="type">Type.</param>
+        public List<Product> GetProductsByType(string type)
+        {
+            if (!_itemTypeToProductList.ContainsKey(type))
+            {
+                throw new ArgumentException($"Item type {type} does not exist in the inventory.");
+            }
+
+            return _itemTypeToProductList[type];
+        }
+
+        public Product GetRandomProductByType(string type)
+        {
+            List<Product> products = GetProductsByType(type);
+            return products[new Random().Next(products.Count)];
+        }
+
+        public List<Product> GetRandomProducts(int numberOfProducts, params string[] typeToIgnore)
+        {
+            List<Product> randomProducts = new List<Product>();
+
+            List<Product> searchList = new List<Product>();
+            foreach (var key in _itemTypeToProductList.Keys)
+            {
+                if (!typeToIgnore.Contains(key))
+                {
+                    searchList.AddRange(_itemTypeToProductList[key]);
+                }
+            }
+
+            Random rng = new Random();
+            for (int i = 0; i < numberOfProducts; i++)
+            {
+                randomProducts.Add(searchList[rng.Next(searchList.Count)]);
+            }
+
+            return randomProducts;
+        }
+
+        //testing
+        public int GetCount()
+        {
+            return _itemTypeToProductList.Values.Count;
         }
     }
 }

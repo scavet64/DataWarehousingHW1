@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GroceryStoreDataGenerator
+namespace GroceryStoreDataGenerator.Models
 {
     public class DataName : Attribute
     {

@@ -11,4 +11,15 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="ScannerEntry.cs" />
+    <Compile Remove="ProductStatisticsService\IProductStatisticService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="12.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ProductStatisticsService\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
 </Project>

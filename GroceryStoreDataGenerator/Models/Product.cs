@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GroceryStoreDataGenerator
+namespace GroceryStoreDataGenerator.Models
 {
     public class Product
     {
@@ -22,7 +22,7 @@ namespace GroceryStoreDataGenerator
         public string ItemType { get; set; }
 
         [DataName("BasePrice")]
-        public string BasePrice { get; set; }
+        public Double BasePrice { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Product"/> class.
@@ -35,7 +35,7 @@ namespace GroceryStoreDataGenerator
         /// <param name="basePrice">The base price.</param>
         /// <exception cref="ArgumentNullException">
         /// </exception>
-        public Product(string manufacturer, string productName, string size, string sKU, string itemType, string basePrice)
+        public Product(string manufacturer, string productName, string size, string sKU, string itemType, double basePrice)
         {
             Manufacturer = manufacturer ?? throw new ArgumentNullException(nameof(manufacturer));
             ProductName = productName ?? throw new ArgumentNullException(nameof(productName));
@@ -51,5 +51,6 @@ namespace GroceryStoreDataGenerator
         public Product()
         {
         }
+
     }
 }
