@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.ConstrainedExecution;
 using CsvHelper;
-using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.Write("Enter inventory file: ");
-            string filename = Console.ReadLine();
+            var filename = Console.ReadLine();
 
             Console.WriteLine("Reading inventory list...");
 
-            Inventory groceryStoreInventory = new Inventory(filename);
+            var groceryStoreInventory = new Inventory(filename);
 
             Console.WriteLine("Running simulation...");
 
-            GroceryStoreSimulation simulation = new GroceryStoreSimulation(groceryStoreInventory, Progress);
+            var simulation = new GroceryStoreSimulation(groceryStoreInventory, Progress);
 
-            List<ScannerData> data = simulation.RunSimulation();
+            var data = simulation.RunSimulation();
 
-            GroceryStoreSummary summary = new GroceryStoreSummary(data);
+            var summary = new GroceryStoreSummary(data);
 
             Console.WriteLine();
 
@@ -34,12 +31,9 @@ namespace GroceryStoreDataGenerator
 
             Console.WriteLine($"Total items bought: {summary.TotalItemsBought}");
 
-            Console.WriteLine($"Top 10 selling items with counts: ");
+            Console.WriteLine("Top 10 selling items with counts: ");
 
-            foreach (var (item, count) in summary.TopTenSellingItemsWithCounts)
-            {
-                Console.WriteLine($"\t{item}\t{count}");
-            }
+            foreach (var (item, count) in summary.TopTenSellingItemsWithCounts) Console.WriteLine($"\t{item}\t{count}");
 
             Console.WriteLine("Writing to data.csv...");
 
@@ -57,17 +51,10 @@ namespace GroceryStoreDataGenerator
         {
             Console.Write($"Finished Day: {++day} / {total}\t|");
 
-            int percent = (day * 100 / total) / 2;
+            var percent = day * 100 / total / 2;
 
-            for (int i = 0; i < percent; i++)
-            {
-                Console.Write("=");
-            }
-
-            for (int i = percent; i < 50; i++)
-            {
-                Console.Write("-");
-            }
+            for (var i = 0; i < percent; i++) Console.Write("=");
+            for (var i = percent; i < 50; i++) Console.Write("-");
 
             Console.Write("|\r");
         }
