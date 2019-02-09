@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator.ProductStatisticsService
@@ -7,18 +6,14 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
     public class BreadStatService : AbstractStatService
     {
         public const string BreadType = "Bread";
-        private const int breadPercent = 50;
-
-        public BreadStatService()
-        {
-        }
+        private const int BreadPercent = 50;
 
         public override List<Product> GetProductsBasedOnStats()
         {
-            List<Product> products = new List<Product>();
+            var products = new List<Product>();
 
             //got milk?
-            if (GetPercentage() <= breadPercent)
+            if (GetPercentage() <= BreadPercent)
             {
                 products.Add(Inventory.GetRandomProductByType(BreadType));
             }

@@ -14,45 +14,46 @@ namespace GroceryStoreDataGenerator
         public const int WeekendCustomerIncrease = 50;
         public const int DaysToRunSimulation = 365;
 
-        private readonly Inventory _groceryStoreInventory;
-        private readonly Action<int,int> _progressCallback;
-        private readonly Random _rng = new Random();
-        private readonly string[] _typesToIgnore;
-        private readonly List<IProductStatService> _statisticsServices;
+        private readonly Inventory groceryStoreInventory;
+        private readonly Action<int, int> progressCallback;
+        private readonly Random rng = new Random();
+        private readonly List<IProductStatService> statisticsServices;
+        private readonly string[] typesToIgnore;
 
-        public GroceryStoreSimulation(Inventory groceryStoreInventory, Action<int,int> progressCallback = null)
+        public GroceryStoreSimulation(Inventory groceryStoreInventory, Action<int, int> progressCallback = null)
         {
-            _groceryStoreInventory = groceryStoreInventory;
-            _progressCallback = progressCallback;
+            this.groceryStoreInventory = groceryStoreInventory;
+            this.progressCallback = progressCallback;
 
-            _statisticsServices = new List<IProductStatService>()
-            {
-                new BabyFoodAndDiaperStatService {Inventory = groceryStoreInventory},
-                new BreadStatService {Inventory = groceryStoreInventory},
-                new MilkAndCerealStatService {Inventory = groceryStoreInventory},
-                new PeanutButterAndJellyStatService {Inventory = groceryStoreInventory}
-            };
+            statisticsServices = new List<IProductStatService>
+                                 {
+                                     new BabyFoodAndDiaperStatService {Inventory = groceryStoreInventory},
+                                     new BreadStatService {Inventory = groceryStoreInventory},
+                                     new MilkAndCerealStatService {Inventory = groceryStoreInventory},
+                                     new PeanutButterAndJellyStatService {Inventory = groceryStoreInventory}
+                                 };
 
-            _typesToIgnore = new[]{
-                BabyFoodAndDiaperStatService.babyFoodType,
-                BabyFoodAndDiaperStatService.DiaperType,
-                BreadStatService.BreadType,
-                MilkAndCerealStatService.CerealType,
-                MilkAndCerealStatService.MilkType,
-                PeanutButterAndJellyStatService.JellyJamType,
-                PeanutButterAndJellyStatService.PeanutButterType
-            };
+            typesToIgnore = new[]
+                            {
+                                BabyFoodAndDiaperStatService.BabyFoodType,
+                                BabyFoodAndDiaperStatService.DiaperType,
+                                BreadStatService.BreadType,
+                                MilkAndCerealStatService.CerealType,
+                                MilkAndCerealStatService.MilkType,
+                                PeanutButterAndJellyStatService.JellyJamType,
+                                PeanutButterAndJellyStatService.PeanutButterType
+                            };
         }
 
         public List<ScannerData> RunSimulation()
         {
-            DateTime currentDate = new DateTime(2019, 1, 1);
-            List<ScannerData> scannerDataList = new List<ScannerData>();
+            var currentDate = new DateTime(2019, 1, 1);
+            var scannerDataList = new List<ScannerData>();
 
-            for (int i = 0; i < DaysToRunSimulation; i++)
+            for (var i = 0; i < DaysToRunSimulation; i++)
             {
                 SimulateDay(currentDate, scannerDataList, i);
-                _progressCallback?.Invoke(i, DaysToRunSimulation);
+                progressCallback?.Invoke(i, DaysToRunSimulation);
                 currentDate = currentDate.AddDays(1);
             }
 
@@ -61,9 +62,9 @@ namespace GroceryStoreDataGenerator
 
         private void SimulateDay(DateTime currentDate, List<ScannerData> scannerDataList, int i)
         {
-            int customersForDay = GetCustomersForDay(currentDate);
+            var customersForDay = GetCustomersForDay(currentDate);
 
-            for (int j = 0; j < customersForDay; j++)
+            for (var j = 0; j < customersForDay; j++)
             {
                 SimulateCustomer(currentDate, scannerDataList, j);
             }
@@ -71,32 +72,34 @@ namespace GroceryStoreDataGenerator
 
         private void SimulateCustomer(DateTime currentDate, List<ScannerData> scannerDataList, int customerNumber)
         {
-            List<Product> itemsPurchased = new List<Product>();
+            var itemsPurchased = new List<Product>();
 
             // Handle each of the specific stat based products
-            foreach (IProductStatService statService in _statisticsServices)
+            foreach (var statService in statisticsServices)
             {
                 itemsPurchased.AddRange(statService.GetProductsBasedOnStats());
             }
 
             //handle everything else
-            itemsPurchased.AddRange(_groceryStoreInventory.GetRandomProducts(_rng.Next(MaxItems - itemsPurchased.Count), _typesToIgnore));
+            itemsPurchased.AddRange(groceryStoreInventory.GetRandomProducts(rng.Next(MaxItems - itemsPurchased.Count),
+                                                                            typesToIgnore));
 
-
-            foreach (Product product in itemsPurchased)
+            foreach (var product in itemsPurchased)
             {
                 //Add Scanner data for each item the customer bought
-                scannerDataList.Add(new ScannerData(product.SKU, currentDate.ToShortDateString(), product.BasePrice * PriceModifier, customerNumber));
+                scannerDataList.Add(new ScannerData(product.SKU, currentDate.ToShortDateString(),
+                                                    product.BasePrice * PriceModifier, customerNumber));
             }
         }
 
         private int GetCustomersForDay(DateTime currentDate)
         {
-            int customersForDay = new Random().Next(CustomerLow, CustomerHigh);
+            var customersForDay = new Random().Next(CustomerLow, CustomerHigh);
             if (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday)
             {
                 customersForDay += WeekendCustomerIncrease;
             }
+
             return customersForDay;
         }
     }

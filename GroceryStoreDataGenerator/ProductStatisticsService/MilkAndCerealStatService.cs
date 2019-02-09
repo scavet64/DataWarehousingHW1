@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator.ProductStatisticsService
@@ -7,26 +6,22 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
     public class MilkAndCerealStatService : AbstractStatService
     {
         public const string MilkType = "Milk";
-        private const int milkPercent = 70;
+        private const int MilkPercent = 70;
         public const string CerealType = "Cereal";
-        private const int cerealPercent = 50;
-        private const int cerealWithoutMilk = 5;
-
-        public MilkAndCerealStatService()
-        {
-
-        }
+        private const int CerealPercent = 50;
+        private const int CerealWithoutMilk = 5;
 
         public override List<Product> GetProductsBasedOnStats()
         {
-            List<Product> products = new List<Product>();
+            var products = new List<Product>();
 
             //got milk?
-            if (GetPercentage() <= milkPercent)
+            if (GetPercentage() <= MilkPercent)
             {
                 products.Add(Inventory.GetRandomProductByType(MilkType));
+                
                 //got cereal?
-                if (GetPercentage() <= cerealPercent)
+                if (GetPercentage() <= CerealPercent)
                 {
                     products.Add(Inventory.GetRandomProductByType(CerealType));
                 }
@@ -34,7 +29,7 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
             else
             {
                 //cereal without milk
-                if (GetPercentage() <= cerealWithoutMilk)
+                if (GetPercentage() <= CerealWithoutMilk)
                 {
                     products.Add(Inventory.GetRandomProductByType(CerealType));
                 }
