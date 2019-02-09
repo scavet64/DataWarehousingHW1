@@ -1,31 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator.ProductStatisticsService
 {
     public class BabyFoodAndDiaperStatService : AbstractStatService
     {
-        public const string babyFoodType = "Baby Food";
-        private const int babyfoodPercent = 20;
+        public const string BabyFoodType = "Baby Food";
+        private const int BabyFoodPercent = 20;
         public const string DiaperType = "Diapers";
-        private const int diaperPercent = 80;
-        private const int diapersWithoutBabyFoodPercent = 1;
-
-        public BabyFoodAndDiaperStatService()
-        {
-        }
+        private const int DiaperPercent = 80;
+        private const int DiapersWithoutBabyFoodPercent = 1;
 
         public override List<Product> GetProductsBasedOnStats()
         {
-            List<Product> products = new List<Product>();
+            var products = new List<Product>();
 
             //got milk?
-            if (GetPercentage() <= babyfoodPercent)
+            if (GetPercentage() <= BabyFoodPercent)
             {
-                products.Add(Inventory.GetRandomProductByType(babyFoodType));
+                products.Add(Inventory.GetRandomProductByType(BabyFoodType));
+                
                 //got cereal?
-                if (GetPercentage() <= diaperPercent)
+                if (GetPercentage() <= DiaperPercent)
                 {
                     products.Add(Inventory.GetRandomProductByType(DiaperType));
                 }
@@ -33,7 +29,7 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
             else
             {
                 //cereal without milk
-                if (GetPercentage() <= diapersWithoutBabyFoodPercent)
+                if (GetPercentage() <= DiapersWithoutBabyFoodPercent)
                 {
                     products.Add(Inventory.GetRandomProductByType(DiaperType));
                 }

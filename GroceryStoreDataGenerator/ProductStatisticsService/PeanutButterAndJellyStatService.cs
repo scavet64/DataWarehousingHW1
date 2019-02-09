@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator.ProductStatisticsService
@@ -7,25 +6,22 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
     public class PeanutButterAndJellyStatService : AbstractStatService
     {
         public const string PeanutButterType = "Peanut Butter";
-        private const int peanutButterPercent = 10;
+        private const int PeanutButterPercent = 10;
         public const string JellyJamType = "Jelly/Jam";
-        private const int jellyJamPercent = 90;
-        private const int jellyJamWithoutPeanutButter = 5;
-
-        public PeanutButterAndJellyStatService()
-        {
-        }
+        private const int JellyJamPercent = 90;
+        private const int JellyJamWithoutPeanutButter = 5;
 
         public override List<Product> GetProductsBasedOnStats()
         {
-            List<Product> products = new List<Product>();
+            var products = new List<Product>();
 
             //got peanut butter?
-            if (GetPercentage() <= peanutButterPercent)
+            if (GetPercentage() <= PeanutButterPercent)
             {
                 products.Add(Inventory.GetRandomProductByType(PeanutButterType));
+
                 //got jelly/jam?
-                if (GetPercentage() <= jellyJamPercent)
+                if (GetPercentage() <= JellyJamPercent)
                 {
                     products.Add(Inventory.GetRandomProductByType(JellyJamType));
                 }
@@ -33,7 +29,7 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
             else
             {
                 //jelly/jam without peanut butter
-                if (GetPercentage() <= jellyJamWithoutPeanutButter)
+                if (GetPercentage() <= JellyJamWithoutPeanutButter)
                 {
                     products.Add(Inventory.GetRandomProductByType(JellyJamType));
                 }
