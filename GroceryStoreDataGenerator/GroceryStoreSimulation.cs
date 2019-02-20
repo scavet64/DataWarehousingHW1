@@ -72,17 +72,26 @@ namespace GroceryStoreDataGenerator
 
         private void SimulateCustomer(DateTime currentDate, List<ScannerData> scannerDataList, int customerNumber)
         {
-            var itemsPurchased = new List<Product>();
+            var itemsToPurchase = rng.Next(1, MaxItems + 1);
+            var itemsLeft = itemsToPurchase;
+
+            var itemsPurchased = new List<Product>(itemsToPurchase);
 
             // Handle each of the specific stat based products
             foreach (var statService in statisticsServices)
             {
                 itemsPurchased.AddRange(statService.GetProductsBasedOnStats());
+                itemsLeft = itemsToPurchase - itemsPurchased.Count;
+                if (itemsLeft <= 0)
+                {
+                    // Remove any excess items and end this customer's purchases.
+                    itemsPurchased.RemoveRange(itemsToPurchase-1, Math.Abs(itemsLeft));
+                    break;
+                }
             }
 
             //handle everything else
-            itemsPurchased.AddRange(groceryStoreInventory.GetRandomProducts(rng.Next(MaxItems - itemsPurchased.Count),
-                                                                            typesToIgnore));
+            itemsPurchased.AddRange(groceryStoreInventory.GetRandomProducts(itemsLeft, typesToIgnore));
 
             foreach (var product in itemsPurchased)
             {

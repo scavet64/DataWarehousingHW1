@@ -6,7 +6,7 @@ namespace GroceryStoreDataGenerator
 {
     public class GroceryStoreSummary
     {
-        public GroceryStoreSummary(List<ScannerData> data)
+        public GroceryStoreSummary(IReadOnlyCollection<ScannerData> data)
         {
             var distinctCustomers = data.Select(d => (d.CustomerNumber, d.DatePurchased)).Distinct();
             NumberOfCustomers = distinctCustomers.Count();
