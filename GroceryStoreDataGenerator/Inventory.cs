@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using GroceryStoreDataGenerator.Database;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator
@@ -11,13 +12,13 @@ namespace GroceryStoreDataGenerator
     {
         private readonly Dictionary<string, List<Product>> itemTypeToProductList;
 
-        public Inventory(string filename)
+        public Inventory(string filename, SQLiteHandler sqliteHandler = null)
         {
             itemTypeToProductList = new Dictionary<string, List<Product>>();
-            ReadFile(filename);
+            ReadFile(filename, sqliteHandler);
         }
 
-        private void ReadFile(string filename)
+        private void ReadFile(string filename, SQLiteHandler sqliteHandler)
         {
             using (var reader = new StreamReader(filename))
             {
@@ -56,6 +57,7 @@ namespace GroceryStoreDataGenerator
                     }
 
                     itemTypeToProductList[product.ItemType].Add(product);
+                    sqliteHandler?.Insert(product);
                 }
             }
         }

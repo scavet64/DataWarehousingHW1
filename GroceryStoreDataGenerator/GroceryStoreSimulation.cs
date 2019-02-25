@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GroceryStoreDataGenerator.Database;
 using GroceryStoreDataGenerator.Models;
 using GroceryStoreDataGenerator.ProductStatisticsService;
 
@@ -19,11 +20,13 @@ namespace GroceryStoreDataGenerator
         private readonly Random rng = new Random();
         private readonly List<IProductStatService> statisticsServices;
         private readonly string[] typesToIgnore;
+        private readonly SQLiteHandler sqliteHandler;
 
-        public GroceryStoreSimulation(Inventory groceryStoreInventory, Action<int, int> progressCallback = null)
+        public GroceryStoreSimulation(Inventory groceryStoreInventory, SQLiteHandler sqliteHandler, Action<int, int> progressCallback = null)
         {
             this.groceryStoreInventory = groceryStoreInventory;
             this.progressCallback = progressCallback;
+            this.sqliteHandler = sqliteHandler;
 
             statisticsServices = new List<IProductStatService>
                                  {
@@ -96,8 +99,11 @@ namespace GroceryStoreDataGenerator
             foreach (var product in itemsPurchased)
             {
                 //Add Scanner data for each item the customer bought
-                scannerDataList.Add(new ScannerData(product.SKU, currentDate.ToShortDateString(),
-                                                    product.BasePrice * PriceModifier, customerNumber));
+                var scannerData = new ScannerData(product.SKU, currentDate.ToShortDateString(),
+                                                  product.BasePrice * PriceModifier, customerNumber);
+
+                //scannerDataList.Add(scannerData);
+                sqliteHandler.Insert(scannerData);
             }
         }
 
