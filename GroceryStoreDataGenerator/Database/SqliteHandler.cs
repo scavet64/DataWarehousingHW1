@@ -42,12 +42,14 @@ namespace GroceryStoreDataGenerator.Database
 
         public void Insert(ScannerData scannerData)
         {
-            command.CommandText = "INSERT INTO scannerData (productPurchased, datePurchased, salePrice, customerNumber) " +
+            command.CommandText = "INSERT INTO scannerData (productPurchased, datePurchased, salePrice, customerNumber, itemsLeft, totalCasesOrdered) " +
                                   "VALUES(@productPurchased, @datePurchased, @salePrice, @customerNumber)";
             command.Parameters.Add(new SQLiteParameter("@productPurchased", scannerData.ProductPurchased));
             command.Parameters.Add(new SQLiteParameter("@datePurchased", scannerData.DatePurchased));
             command.Parameters.Add(new SQLiteParameter("@salePrice", scannerData.SalePrice));
             command.Parameters.Add(new SQLiteParameter("@customerNumber", scannerData.CustomerNumber));
+            command.Parameters.Add(new SQLiteParameter("@itemsLeft", scannerData.ItemsLeft));
+            command.Parameters.Add(new SQLiteParameter("@totalCasesOrdered", scannerData.TotalCasesOrdered));
             command.ExecuteNonQuery();
             command.Parameters.Clear();
         }
