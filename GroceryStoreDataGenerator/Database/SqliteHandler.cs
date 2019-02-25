@@ -69,7 +69,9 @@ namespace GroceryStoreDataGenerator.Database
                                   "    productPurchased VARCHAR(255)," +
                                   "    datePurchased DATE," +
                                   "    salePrice DOUBLE," +
-                                  "    customerNumber INTEGER" +
+                                  "    customerNumber INTEGER," +
+                                  "    itemsLeft INTEGER," +
+                                  "    totalCasesOrdered INTEGER" +
                                   ")";
             command.ExecuteNonQuery();
         }

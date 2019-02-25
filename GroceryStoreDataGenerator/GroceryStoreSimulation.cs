@@ -15,6 +15,7 @@ namespace GroceryStoreDataGenerator
         public const int WeekendCustomerIncrease = 50;
         public const int DaysToRunSimulation = 365;
 
+        private readonly HashSet<DayOfWeek> deliveryDays; 
         private readonly Inventory groceryStoreInventory;
         private readonly Action<int, int> progressCallback;
         private readonly Random rng = new Random();
@@ -27,6 +28,8 @@ namespace GroceryStoreDataGenerator
             this.groceryStoreInventory = groceryStoreInventory;
             this.progressCallback = progressCallback;
             this.sqliteHandler = sqliteHandler;
+
+            deliveryDays = new HashSet<DayOfWeek> { DayOfWeek.Tuesday, DayOfWeek.Thursday, DayOfWeek.Saturday };
 
             statisticsServices = new List<IProductStatService>
                                  {
@@ -48,32 +51,35 @@ namespace GroceryStoreDataGenerator
                             };
         }
 
-        public List<ScannerData> RunSimulation()
+        public void RunSimulation()
         {
             var currentDate = new DateTime(2019, 1, 1);
-            var scannerDataList = new List<ScannerData>();
 
             for (var i = 0; i < DaysToRunSimulation; i++)
             {
-                SimulateDay(currentDate, scannerDataList, i);
+                SimulateDay(currentDate);
                 progressCallback?.Invoke(i, DaysToRunSimulation);
                 currentDate = currentDate.AddDays(1);
             }
-
-            return scannerDataList;
         }
 
-        private void SimulateDay(DateTime currentDate, List<ScannerData> scannerDataList, int i)
+        private void SimulateDay(DateTime currentDate)
         {
+            groceryStoreInventory.MilkDelivery();
+            if (deliveryDays.Contains(currentDate.DayOfWeek))
+            {
+                groceryStoreInventory.OtherDeliveries();
+            }
+
             var customersForDay = GetCustomersForDay(currentDate);
 
             for (var j = 0; j < customersForDay; j++)
             {
-                SimulateCustomer(currentDate, scannerDataList, j);
+                SimulateCustomer(currentDate, j);
             }
         }
 
-        private void SimulateCustomer(DateTime currentDate, List<ScannerData> scannerDataList, int customerNumber)
+        private void SimulateCustomer(DateTime currentDate, int customerNumber)
         {
             var itemsToPurchase = rng.Next(1, MaxItems + 1);
             var itemsLeft = itemsToPurchase;
@@ -83,26 +89,24 @@ namespace GroceryStoreDataGenerator
             // Handle each of the specific stat based products
             foreach (var statService in statisticsServices)
             {
-                itemsPurchased.AddRange(statService.GetProductsBasedOnStats());
                 itemsLeft = itemsToPurchase - itemsPurchased.Count;
-                if (itemsLeft <= 0)
+                if (itemsLeft == 0)
                 {
-                    // Remove any excess items and end this customer's purchases.
-                    itemsPurchased.RemoveRange(itemsToPurchase-1, Math.Abs(itemsLeft));
                     break;
                 }
+
+                itemsPurchased.AddRange(statService.GetProductsBasedOnStats(itemsLeft));
             }
 
             //handle everything else
-            itemsPurchased.AddRange(groceryStoreInventory.GetRandomProducts(itemsLeft, typesToIgnore));
+            itemsPurchased.AddRange(groceryStoreInventory.PurchaseRandomProducts(itemsLeft, typesToIgnore));
 
             foreach (var product in itemsPurchased)
             {
                 //Add Scanner data for each item the customer bought
-                var scannerData = new ScannerData(product.SKU, currentDate.ToShortDateString(),
-                                                  product.BasePrice * PriceModifier, customerNumber);
+                var scannerData = new ScannerData(product.SKU, currentDate.ToShortDateString(), product.BasePrice * PriceModifier, 
+                                                  customerNumber, product.ItemsLeft, product.TotalCasesOrdered);
 
-                //scannerDataList.Add(scannerData);
                 sqliteHandler.Insert(scannerData);
             }
         }

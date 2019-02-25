@@ -6,13 +6,13 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
 {
     public abstract class AbstractStatService : IProductStatService
     {
-        protected readonly Random rng = new Random();
+        protected readonly Random Rng = new Random();
         public Inventory Inventory { protected get; set; }
-        public abstract List<Product> GetProductsBasedOnStats();
+        public abstract List<Product> GetProductsBasedOnStats(int itemsLeft);
 
         protected int GetPercentage()
         {
-            return rng.Next(100) + 1;
+            return Rng.Next(100) + 1;
         }
     }
 }
