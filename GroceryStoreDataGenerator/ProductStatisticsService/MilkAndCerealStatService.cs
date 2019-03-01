@@ -11,27 +11,25 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
         private const int CerealPercent = 50;
         private const int CerealWithoutMilk = 5;
 
-        public override List<Product> GetProductsBasedOnStats()
+        public override List<Product> GetProductsBasedOnStats(int itemsLeft)
         {
             var products = new List<Product>();
 
-            //got milk?
             if (GetPercentage() <= MilkPercent)
             {
-                products.Add(Inventory.GetRandomProductByType(MilkType));
-                
-                //got cereal?
-                if (GetPercentage() <= CerealPercent)
+                products.Add(Inventory.PurchaseRandomProductByType(MilkType));
+                itemsLeft--;
+
+                if (GetPercentage() <= CerealPercent && itemsLeft > 0)
                 {
-                    products.Add(Inventory.GetRandomProductByType(CerealType));
+                    products.Add(Inventory.PurchaseRandomProductByType(CerealType));
                 }
             }
             else
             {
-                //cereal without milk
                 if (GetPercentage() <= CerealWithoutMilk)
                 {
-                    products.Add(Inventory.GetRandomProductByType(CerealType));
+                    products.Add(Inventory.PurchaseRandomProductByType(CerealType));
                 }
             }
 

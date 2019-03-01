@@ -11,27 +11,25 @@ namespace GroceryStoreDataGenerator.ProductStatisticsService
         private const int JellyJamPercent = 90;
         private const int JellyJamWithoutPeanutButter = 5;
 
-        public override List<Product> GetProductsBasedOnStats()
+        public override List<Product> GetProductsBasedOnStats(int itemsLeft)
         {
             var products = new List<Product>();
 
-            //got peanut butter?
             if (GetPercentage() <= PeanutButterPercent)
             {
-                products.Add(Inventory.GetRandomProductByType(PeanutButterType));
+                products.Add(Inventory.PurchaseRandomProductByType(PeanutButterType));
+                itemsLeft--;
 
-                //got jelly/jam?
-                if (GetPercentage() <= JellyJamPercent)
+                if (GetPercentage() <= JellyJamPercent && itemsLeft > 0)
                 {
-                    products.Add(Inventory.GetRandomProductByType(JellyJamType));
+                    products.Add(Inventory.PurchaseRandomProductByType(JellyJamType));
                 }
             }
             else
             {
-                //jelly/jam without peanut butter
                 if (GetPercentage() <= JellyJamWithoutPeanutButter)
                 {
-                    products.Add(Inventory.GetRandomProductByType(JellyJamType));
+                    products.Add(Inventory.PurchaseRandomProductByType(JellyJamType));
                 }
             }
 

@@ -1,35 +1,39 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using GroceryStoreDataGenerator.Models;
+using System.Data;
+using GroceryStoreDataGenerator.Database;
 
 namespace GroceryStoreDataGenerator
 {
     public class GroceryStoreSummary
     {
-        public GroceryStoreSummary(List<ScannerData> data)
+        public GroceryStoreSummary(SQLiteHandler dbHandler)
         {
-            var distinctCustomers = data.Select(d => (d.CustomerNumber, d.DatePurchased)).Distinct();
-            NumberOfCustomers = distinctCustomers.Count();
+            var cmd = dbHandler.SQLiteConnection.CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = "SELECT COUNT(*) FROM (SELECT DISTINCT customerNumber, datePurchased FROM scannerData)";
+            NumberOfCustomers = (long)cmd.ExecuteScalar();
 
-            TotalSales = data.Select(d => d.SalePrice).Sum();
+            cmd.CommandText = "SELECT SUM(salePrice) FROM scannerData";
+            TotalSales = (double)cmd.ExecuteScalar();
 
-            TotalItemsBought = data.Count;
+            cmd.CommandText = "SELECT COUNT(*) FROM scannerData";
+            TotalItemsBought = (long)cmd.ExecuteScalar();
 
-            TopTenSellingItemsWithCounts = (
-                from d in data
-                group d.ProductPurchased by d.ProductPurchased
-                into gd
-                orderby gd.Count() descending
-                select (gd.Key, gd.Count())
-            ).Take(10).ToList();
+            cmd.CommandText = "SELECT productName, COUNT(productPurchased) FROM scannerData " +
+                              "JOIN products ON products.sku = scannerData.productPurchased " +
+                              "GROUP BY productPurchased " +
+                              "ORDER BY 2 DESC LIMIT 10";
+
+            TopTenSellingItemsWithCounts = new List<(string Item, long Count)>(10);
+            using (var reader = cmd.ExecuteReader()) while (reader.Read()) TopTenSellingItemsWithCounts.Add((reader.GetString(0), reader.GetInt64(1)));
         }
 
-        public int NumberOfCustomers { get; }
+        public long NumberOfCustomers { get; }
 
         public double TotalSales { get; }
 
-        public int TotalItemsBought { get; }
+        public long TotalItemsBought { get; }
 
-        public List<(string Item, int Count)> TopTenSellingItemsWithCounts { get; }
+        public List<(string Item, long Count)> TopTenSellingItemsWithCounts { get; }
     }
 }

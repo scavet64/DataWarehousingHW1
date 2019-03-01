@@ -1,6 +1,5 @@
 ﻿using System;
-using System.IO;
-using CsvHelper;
+using GroceryStoreDataGenerator.Database;
 
 namespace GroceryStoreDataGenerator
 {
@@ -8,32 +7,38 @@ namespace GroceryStoreDataGenerator
     {
         private static void Main(string[] args)
         {
-            Console.Write("Enter inventory file: ");
-            var filename = Console.ReadLine();
-
-            Console.WriteLine("Reading inventory list...");
-            var groceryStoreInventory = new Inventory(filename);
-
-            Console.WriteLine("Running simulation...");
-            var simulation = new GroceryStoreSimulation(groceryStoreInventory, Progress);
-            var data = simulation.RunSimulation();
-            var summary = new GroceryStoreSummary(data);
-
-            Console.WriteLine($"\n\nNumber of customers: {summary.NumberOfCustomers}\n");
-            Console.WriteLine($"Total sales: ${Math.Round(summary.TotalSales, 2)}\n");
-            Console.WriteLine($"Total items bought: {summary.TotalItemsBought}\n");
-            Console.WriteLine("Top 10 selling items with counts: ");
-            foreach (var (item, count) in summary.TopTenSellingItemsWithCounts) Console.WriteLine($"\t{item}\t{count}");
-
-            Console.WriteLine("\nWriting to data.csv...");
-            using (var writer = new StreamWriter("data.csv"))
-            using (var csv = new CsvWriter(writer))
+            using (var sqliteHandler = new SQLiteHandler("GroceryStore.sqlite"))
             {
-                csv.WriteRecords(data);
-            }
+                Console.Write("Enter inventory file: ");
+                var filename = Console.ReadLine();
 
-            Console.WriteLine("Done. Press enter to exit...");
-            Console.ReadLine();
+                Console.WriteLine("Reading inventory list...");
+                Inventory groceryStoreInventory;
+                using (var transaction = sqliteHandler.SQLiteConnection.BeginTransaction())
+                {
+                    groceryStoreInventory = new Inventory(filename, sqliteHandler);
+                    transaction.Commit();
+                }
+
+                Console.WriteLine("Running simulation...");
+                using (var transaction = sqliteHandler.SQLiteConnection.BeginTransaction())
+                {
+                    var simulation = new GroceryStoreSimulation(groceryStoreInventory, sqliteHandler, Progress);
+                    simulation.RunSimulation();
+                    transaction.Commit();
+                }
+
+                var summary = new GroceryStoreSummary(sqliteHandler);
+
+                Console.WriteLine($"\n\nNumber of customers: {summary.NumberOfCustomers}\n");
+                Console.WriteLine($"Total sales: ${Math.Round(summary.TotalSales, 2)}\n");
+                Console.WriteLine($"Total items bought: {summary.TotalItemsBought}\n");
+                Console.WriteLine("Top 10 selling items with counts: ");
+                foreach (var (item, count) in summary.TopTenSellingItemsWithCounts) Console.WriteLine($"\t{item}\t{count}");
+
+                Console.WriteLine("Done. Press enter to exit...");
+                Console.ReadLine();
+            }
         }
 
         private static void Progress(int day, int total)

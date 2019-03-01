@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using GroceryStoreDataGenerator.Database;
 using GroceryStoreDataGenerator.Models;
 
 namespace GroceryStoreDataGenerator
@@ -11,13 +12,13 @@ namespace GroceryStoreDataGenerator
     {
         private readonly Dictionary<string, List<Product>> itemTypeToProductList;
 
-        public Inventory(string filename)
+        public Inventory(string filename, SQLiteHandler sqliteHandler = null)
         {
             itemTypeToProductList = new Dictionary<string, List<Product>>();
-            ReadFile(filename);
+            ReadFile(filename, sqliteHandler);
         }
 
-        private void ReadFile(string filename)
+        private void ReadFile(string filename, SQLiteHandler sqliteHandler)
         {
             using (var reader = new StreamReader(filename))
             {
@@ -48,6 +49,10 @@ namespace GroceryStoreDataGenerator
                         propertyInfo.SetValue(product, value);
                     }
 
+                    product.ItemsLeft = product.ItemType == "Milk"
+                                            ? (int) Math.Ceiling(1.5 * DailySupplyPerItem(product.ItemType))
+                                            : 3 * DailySupplyPerItem(product.ItemType);
+
                     //Get Store the product category into the map for quick, direct access to the main inventory list
                     if (!itemTypeToProductList.ContainsKey(product.ItemType))
                     {
@@ -56,6 +61,7 @@ namespace GroceryStoreDataGenerator
                     }
 
                     itemTypeToProductList[product.ItemType].Add(product);
+                    sqliteHandler?.Insert(product);
                 }
             }
         }
@@ -75,13 +81,21 @@ namespace GroceryStoreDataGenerator
             return itemTypeToProductList[type];
         }
 
-        public Product GetRandomProductByType(string type)
+        public Product PurchaseRandomProductByType(string type)
         {
             var products = GetProductsByType(type);
-            return products[new Random().Next(products.Count)];
+
+            var product = products[new Random().Next(products.Count)];
+            while (product.ItemsLeft == 0)
+            {
+                product = products[new Random().Next(products.Count)];
+            }
+
+            product.ItemsLeft--;
+            return product;
         }
 
-        public List<Product> GetRandomProducts(int numberOfProducts, params string[] typeToIgnore)
+        public List<Product> PurchaseRandomProducts(int numberOfProducts, params string[] typeToIgnore)
         {
             var randomProducts = new List<Product>();
 
@@ -97,10 +111,73 @@ namespace GroceryStoreDataGenerator
             var rng = new Random();
             for (var i = 0; i < numberOfProducts; i++)
             {
-                randomProducts.Add(searchList[rng.Next(searchList.Count)]);
+                var product = searchList[rng.Next(searchList.Count)];
+                while (product.ItemsLeft == 0)
+                {
+                    product = searchList[rng.Next(searchList.Count)];
+                }
+
+                product.ItemsLeft--;
+                randomProducts.Add(product);
             }
 
             return randomProducts;
+        }
+
+        public int DailySupplyPerItem(string itemType)
+        {
+            switch (itemType)
+            {
+                case "Milk":
+                    return 145;
+                case "Cereal":
+                    return 5;
+                case "Baby Food":
+                    return 2;
+                case "Diapers":
+                    return 3;
+                case "Bread":
+                    return 13;
+                case "Peanut Butter":
+                    return 6;
+                case "Jelly/Jam":
+                    return 45;
+                default:
+                    return 23;
+            }
+        }
+
+        public void MilkDelivery()
+        {
+            int dailySupply = (int)Math.Ceiling(1.5 * DailySupplyPerItem("Milk"));
+            foreach (var milkItem in itemTypeToProductList["Milk"])
+            {
+                if (milkItem.ItemsLeft < dailySupply)
+                {
+                    var casesToOrder = (int)Math.Ceiling((dailySupply - milkItem.ItemsLeft) / 12.0) ;
+                    milkItem.TotalCasesOrdered += casesToOrder;
+                    milkItem.ItemsLeft += 12 * casesToOrder;
+                }
+            }
+        }
+
+        public void OtherDeliveries()
+        {
+            foreach (var category in itemTypeToProductList.Keys)
+            {
+                if (category == "Milk") continue;
+
+                int dailySupply = 3 * DailySupplyPerItem(category);
+                foreach (var item in itemTypeToProductList[category])
+                {
+                    if (item.ItemsLeft < dailySupply)
+                    {
+                        var casesToOrder = (int)Math.Ceiling((dailySupply - item.ItemsLeft) / 12.0);
+                        item.TotalCasesOrdered += casesToOrder;
+                        item.ItemsLeft += 12 * casesToOrder;
+                    }
+                }
+            }
         }
     }
 }
